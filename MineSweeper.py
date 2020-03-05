@@ -1,5 +1,7 @@
 from random import seed
 from random import randint
+import os
+import pdb
 
 
 class Cell:
@@ -29,20 +31,19 @@ class Field:
         click_init = [row_init, col_init]
         i = 0
         while i < self.num_bombs:
-            row = randint(1, self.num_col)
-            col = randint(1, self.num_row)
+            row = randint(0, self.num_col-1)
+            col = randint(0, self.num_row-1)
             coordinate = [row, col]
-            if self.bomb_coordinates.__contains__(coordinate) or coordinate == click_init:
-                i = i-1         # Choose a different coordinate
-            else:
-                self.bomb_coordinates.add(coordinate)
+            if not self.bomb_coordinates.__contains__(coordinate) and not coordinate == click_init:
+                self.bomb_coordinates.append(coordinate)
                 self.matrix[row][col].value = -1        # Make the coordinate a bomb
                 i = i+1
         for j in self.bomb_coordinates:
-            adjacents = self.bomb_coordinates[j].adjacents
+            adjacents = self.get_adjacent_cells(j[0], j[1])
+            print(j)
             for i in adjacents:
-                adjacents[i].value = adjacents[i].value + 1
-
+                self.matrix[i[0]][i[1]].value = self.matrix[i[0]][i[1]].value + 1
+        self.click(click_init[0], click_init[1])
     def click(self, row, col):
         # either a bomb
         if self.bomb_coordinates.__contains__([row, col]):
@@ -57,16 +58,16 @@ class Field:
         else:
             self.matrix[row][col].visible = True
             adjacents = self.get_adjacent_cells(row, col)
+            print(adjacents)
             for i in adjacents:
-                if self.bomb_coordinates.__contains__(adjacents[i]):
-                    return
-                else:
-                    coordinate = adjacents[i]
-                    self.click(coordinate[0], coordinate[1])
+                if self.bomb_coordinates.__contains__(i):
+                    print("ignore bomb");
+                elif self.matrix[i[0]][i[1]].visible==False:
+                    self.click(i[0], i[1])
 
     # Determines if a cell coordinate is valid
     def is_cell_valid(self, row, col):
-        if row > self.num_row or col > self.num_col:
+        if row >= self.num_row or col >= self.num_col:
             return False
 
         elif row < 0 or col < 0:
@@ -79,11 +80,11 @@ class Field:
     def get_adjacent_cells(self, row, col):
         adjacents = []
         j = 0
-        i = 0
         while j < 3:
+            i=0
             while i < 3:
-                if self.is_cell_valid(row - 1 + j, i - 1 + i) and (row != row - 1 + j and col != col - 1 + i):
-                    adjacents.add([row - 1 + j, i - 1 + i])
+                if self.is_cell_valid(row - 1 + j, col - 1 + i) and [row,col]!=[row-1+j,col-1+i]:
+                    adjacents.append([row - 1 + j, col - 1 + i])
                 i = i + 1
             j = j + 1
         return adjacents
@@ -102,11 +103,4 @@ class Field:
                     line+= "| |"
             print(line)
             line = ""
-
-# Main method .......
-test_field = Field(3,3,3)
-
-test_field.click(0,0)
-test_field.click(0,1)
-test_field.print_field()
 
