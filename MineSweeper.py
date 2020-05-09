@@ -18,7 +18,7 @@ class Field:
     num_row = 0
     matrix = [[]]
     num_bombs = 0
-
+    populated= False
     def __init__(self, col, row, bombs):
         self.num_col = col
         self.num_row = row
@@ -40,14 +40,14 @@ class Field:
                 i = i+1
         for j in self.bomb_coordinates:
             adjacents = self.get_adjacent_cells(j[0], j[1])
-            print(j)
             for i in adjacents:
                 self.matrix[i[0]][i[1]].value = self.matrix[i[0]][i[1]].value + 1
-        self.click(click_init[0], click_init[1])
     def click(self, row, col):
-        # either a bomb
-        if self.bomb_coordinates.__contains__([row, col]):
-            # Reveal entire board
+        if not self.populated:
+            self.populate(col,row)
+            self.populated = True
+        if self.bomb_coordinates.__contains__([row, col]): 
+                # Reveal entire board
             for j in range(self.num_bombs):
                 for i in range(self.num_row):
                     self.matrix[row][col].visible = True
@@ -58,10 +58,9 @@ class Field:
         else:
             self.matrix[row][col].visible = True
             adjacents = self.get_adjacent_cells(row, col)
-            print(adjacents)
             for i in adjacents:
                 if self.bomb_coordinates.__contains__(i):
-                    print("ignore bomb");
+                    pass #ignore bomb 
                 elif self.matrix[i[0]][i[1]].visible==False:
                     self.click(i[0], i[1])
 
